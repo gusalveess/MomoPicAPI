@@ -49,5 +49,30 @@ router.get('/', async (req, res) => {
     }
 });
 
+router.put('/:id', async (req, res) => {
+    const { id } = req.params; 
+    const { status } = req.body; 
+
+    const query = `
+        UPDATE promises
+        SET status = $1
+        WHERE id = $2
+        RETURNING *;
+    `;
+
+    try {
+        const result = await req.app.locals.pool.query(query, [status, id]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'Promessa não encontrada' });
+        }
+
+        res.status(200).json({ message: 'Status atualizado com sucesso', promise: result.rows[0] });
+    } catch (err) {
+        console.error('Erro ao atualizar o status da promessa:', err);
+        res.status(500).json({ message: 'Erro ao atualizar o status da promessa' });
+    }
+});
+
 
 module.exports = router;
